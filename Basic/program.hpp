@@ -8,12 +8,8 @@
 #ifndef _program_h
 #define _program_h
 
+#include <map>
 #include <string>
-#include <vector>
-#include <set>
-#include <unordered_map>
-#include "statement.hpp"
-
 
 class Statement;
 
@@ -72,7 +68,7 @@ public:
  * program in the correct sequence.
  */
 
-    void addSourceLine(int lineNumber, const std::string& line);
+    void addSourceLine(int lineNumber, const std::string &line);
 
 /*
  * Method: removeSourceLine
@@ -140,13 +136,29 @@ public:
 
     int getNextLineNumber(int lineNumber);
 
-    //more func to add
-    //todo
+    bool containsLine(int lineNumber) const;
+
+    void resetRunState();
+
+    void requestJump(int lineNumber);
+
+    bool hasJump() const;
+
+    int getJumpTarget() const;
+
+    void setEndFlag();
+
+    bool shouldEnd() const;
 
 private:
+    struct Line {
+        std::string source;
+        Statement *stmt;
+    };
 
-    // Fill this in with whatever types and instance variables you need
-    //todo
+    std::map<int, Line> lines;
+    int jumpTarget;
+    bool endFlag;
 };
 
 #endif

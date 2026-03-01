@@ -13,16 +13,22 @@
 #define _statement_h
 
 #include <string>
-#include <sstream>
+
 #include "evalstate.hpp"
 #include "exp.hpp"
 #include "Utils/tokenScanner.hpp"
-#include "program.hpp"
-#include "parser.hpp"
-#include "Utils/error.hpp"
-#include "Utils/strlib.hpp"
 
 class Program;
+
+enum StatementType {
+    REM_STMT,
+    LET_STMT,
+    PRINT_STMT,
+    INPUT_STMT,
+    END_STMT,
+    GOTO_STMT,
+    IF_STMT
+};
 
 /*
  * Class: Statement
@@ -71,18 +77,95 @@ public:
 
     virtual void execute(EvalState &state, Program &program) = 0;
 
+    virtual StatementType getType() const = 0;
 };
 
+class RemStatement : public Statement {
+public:
+    void execute(EvalState &state, Program &program) override;
 
-/*
- * The remainder of this file must consists of subclass
- * definitions for the individual statement forms.  Each of
- * those subclasses must define a constructor that parses a
- * statement from a scanner and a method called execute,
- * which executes that statement.  If the private data for
- * a subclass includes data allocated on the heap (such as
- * an Expression object), the class implementation must also
- * specify its own destructor method to free that memory.
- */
+    StatementType getType() const override;
+};
+
+class LetStatement : public Statement {
+public:
+    LetStatement(std::string var, Expression *exp);
+
+    ~LetStatement() override;
+
+    void execute(EvalState &state, Program &program) override;
+
+    StatementType getType() const override;
+
+private:
+    std::string var;
+    Expression *exp;
+};
+
+class PrintStatement : public Statement {
+public:
+    explicit PrintStatement(Expression *exp);
+
+    ~PrintStatement() override;
+
+    void execute(EvalState &state, Program &program) override;
+
+    StatementType getType() const override;
+
+private:
+    Expression *exp;
+};
+
+class InputStatement : public Statement {
+public:
+    explicit InputStatement(std::string var);
+
+    void execute(EvalState &state, Program &program) override;
+
+    StatementType getType() const override;
+
+private:
+    std::string var;
+};
+
+class EndStatement : public Statement {
+public:
+    void execute(EvalState &state, Program &program) override;
+
+    StatementType getType() const override;
+};
+
+class GotoStatement : public Statement {
+public:
+    explicit GotoStatement(int lineNumber);
+
+    void execute(EvalState &state, Program &program) override;
+
+    StatementType getType() const override;
+
+private:
+    int lineNumber;
+};
+
+class IfStatement : public Statement {
+public:
+    IfStatement(Expression *lhs, std::string op, Expression *rhs, int lineNumber);
+
+    ~IfStatement() override;
+
+    void execute(EvalState &state, Program &program) override;
+
+    StatementType getType() const override;
+
+private:
+    Expression *lhs;
+    std::string op;
+    Expression *rhs;
+    int lineNumber;
+};
+
+Statement *parseStatement(TokenScanner &scanner);
+
+bool isKeyword(const std::string &token);
 
 #endif

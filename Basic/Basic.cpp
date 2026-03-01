@@ -6,6 +6,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <memory>
 #include <string>
 
 #include "program.hpp"
@@ -156,15 +157,13 @@ void processLine(std::string line, Program &program, EvalState &state) {
     if (token == "LET" || token == "PRINT" || token == "INPUT") {
         scanner.saveToken(token);
 
-        Statement *stmt = parseStatement(scanner);
+        std::unique_ptr<Statement> stmt(parseStatement(scanner));
         StatementType type = stmt->getType();
         if (type != LET_STMT && type != PRINT_STMT && type != INPUT_STMT) {
-            delete stmt;
             error("SYNTAX ERROR");
         }
 
         stmt->execute(state, program);
-        delete stmt;
         return;
     }
 
